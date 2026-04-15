@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FinZen</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#F7F6F2;--card:#fff;--ink:#1A1A18;--ink2:#6B6A62;--ink3:#B0AFA8;--line:#E8E7E2;
+  --green:#1A7A4A;--gbg:#EBF5EE;--red:#C0392B;--rbg:#FCECEA;
+  --blue:#1A5FA8;--bbg:#E8F0FB;--amb:#A0620A;--abg:#FDF3E3;
+  --r:16px;--r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+input,select,button,textarea{font-family:'DM Sans',sans-serif}
+
+/* ── PIN ── */
+.pin{position:fixed;inset:0;background:var(--ink);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pin.off{display:none}
+.plogo{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:#fff;letter-spacing:4px;margin-bottom:5px}
+.psub{font-size:11px;color:#555;letter-spacing:1px;margin-bottom:36px}
+.pdots{display:flex;gap:13px;margin-bottom:34px}
+.pd{width:13px;height:13px;border-radius:50%;background:#2a2a2a;transition:all .18s}
+.pd.on{background:#fff}
+.pd.err{background:#e87070}
+.pgrid{display:grid;grid-template-columns:repeat(3,70px);gap:10px}
+.pk{width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.07);border:none;color:#fff;font-size:22px;font-weight:500;cursor:pointer}
+.pk:active{background:rgba(255,255,255,.2)}
+.perr{color:#e87070;font-size:12px;min-height:16px;margin-top:12px}
+
+/* ── APP ── */
+.app{max-width:430px;margin:0 auto;padding-bottom:80px;min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--card);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.tlogo{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;letter-spacing:2px}
+.upill{display:flex;align-items:center;gap:5px;background:var(--abg);border:1px solid #F0C060;border-radius:20px;padding:5px 11px}
+.upill span{font-size:10px;color:var(--amb);opacity:.75}
+.uinp{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--amb);background:none;border:none;outline:none;width:68px;text-align:center}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--card);border-top:1px solid var(--line);display:flex;z-index:50}
+.bn{flex:1;background:none;border:none;padding:9px 4px 11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink3);font-size:9px;letter-spacing:.4px}
+.bn.on{color:var(--ink)}
+.bni{font-size:19px;line-height:1}
+
+/* ── SCREENS ── */
+.sc{display:none;padding:13px 13px 0}
+.sc.on{display:block}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:11px;border:1px solid var(--line)}
+.ct{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3);margin-bottom:13px}
+
+/* ── HERO ── */
+.hero{background:var(--ink);color:#fff;border-radius:var(--r);padding:20px 18px;margin-bottom:11px}
+.hlbl{font-size:10px;color:#777;letter-spacing:1px;margin-bottom:5px}
+.hars{font-family:'DM Mono',monospace;font-size:32px;font-weight:500;line-height:1;letter-spacing:-1px}
+.husd{font-family:'DM Mono',monospace;font-size:14px;color:#9FE1CB;margin-top:4px}
+.hrow{display:flex;gap:0;margin-top:16px;padding-top:14px;border-top:1px solid #252525}
+.hi{flex:1;padding:0 3px}
+.hil{font-size:9px;color:#777;margin-bottom:2px}
+.hiv{font-family:'DM Mono',monospace;font-size:13px;font-weight:500}
+
+/* ── ALERTA ── */
+.alerta{border-radius:var(--r2);padding:13px 14px;margin-bottom:11px;display:flex;gap:10px;align-items:flex-start;border-left:4px solid}
+.alerta-red{background:var(--rbg);border-color:var(--red)}
+.alerta-green{background:var(--gbg);border-color:var(--green)}
+.alerta-amber{background:var(--abg);border-color:var(--amb)}
+.alt{font-weight:600;font-size:13px;margin-bottom:3px}
+.ald{font-size:12px;opacity:.75;line-height:1.45}
+
+/* ── STATS GRID ── */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.sc2{background:var(--card);border-radius:var(--r2);padding:13px;border:1px solid var(--line)}
+.sl{font-size:10px;color:var(--ink3);margin-bottom:3px}
+.sv{font-family:'DM Mono',monospace;font-size:18px;font-weight:500}
+.ss{font-size:10px;color:var(--ink3);margin-top:2px}
+
+/* ── PROGRESS ── */
+.prog{margin-bottom:13px}
+.prh{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.prn{font-size:13px;font-weight:500}
+.prp{font-family:'DM Mono',monospace;font-size:12px;font-weight:500}
+.prbar{height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+.prfill{height:100%;border-radius:4px;transition:width .5s}
+.prsub{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-top:3px}
+
+/* ── TX ── */
+.txi{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.txi:last-child{border-bottom:none}
+.txic{width:37px;height:37px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.txbd{flex:1;min-width:0}
+.txnm{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txct{font-size:11px;color:var(--ink3);margin-top:1px}
+.txam{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;white-space:nowrap}
+.txdel{width:27px;height:27px;border:none;background:none;cursor:pointer;color:var(--ink3);font-size:14px;border-radius:50%}
+.txdel:active{background:var(--rbg);color:var(--red)}
+
+/* ── CHIPS ── */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:11px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:5px 11px;border-radius:20px;font-size:12px;border:1px solid var(--line);background:var(--card);color:var(--ink2);white-space:nowrap;cursor:pointer}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ── MODAL ── */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center}
+.mbg.open{display:flex}
+.mpanel{background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 34px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto}
+.mtitle{font-size:16px;font-weight:600;margin-bottom:17px}
+.fl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3);margin-bottom:4px;display:block;margin-top:12px}
+.fi{width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:var(--r2);font-size:15px;background:var(--bg);color:var(--ink);outline:none;transition:border-color .2s;margin-bottom:0}
+.fi:focus{border-color:var(--ink)}
+.fibig{font-size:22px;font-family:'DM Mono',monospace;text-align:center}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+
+/* ── TYPE TOGGLE ── */
+.tt{display:flex;background:var(--bg);border-radius:var(--r2);padding:3px;margin-bottom:14px;border:1px solid var(--line)}
+.ttb{flex:1;padding:9px 4px;border:none;background:none;border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;color:var(--ink3)}
+.ttb.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.ttb.on.ing{color:var(--green)}
+.ttb.on.egr{color:var(--red)}
+.ttb.on.aho{color:var(--blue)}
+
+/* ── DESTINO ── */
+.dg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:4px;margin-bottom:14px}
+.do{padding:10px 5px;border-radius:var(--r2);border:1.5px solid var(--line);text-align:center;cursor:pointer;transition:all .15s}
+.do.on{border-color:var(--ink);background:var(--ink)}
+.do.on .dl{color:#fff}
+.di{font-size:19px;margin-bottom:3px}
+.dl{font-size:10px;font-weight:500;color:var(--ink2)}
+
+/* ── BTNS ── */
+.btn{width:100%;padding:14px;border:none;border-radius:var(--r2);font-size:14px;font-weight:600;cursor:pointer;display:block;margin-top:9px;text-align:center}
+.btnp{background:var(--ink);color:#fff}
+.btng{background:none;border:1.5px solid var(--line);color:var(--ink2)}
+.btnd{background:var(--rbg);color:var(--red);border:none}
+
+/* ── FAB ── */
+.fab{position:fixed;bottom:86px;right:calc(50% - 215px + 13px);width:52px;height:52px;background:var(--ink);border:none;border-radius:50%;color:#fff;font-size:25px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.22);z-index:49}
+.fab:active{transform:scale(.9)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+
+/* ── MISC ── */
+.sec{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3);margin:16px 0 9px}
+.empty{text-align:center;padding:26px 14px;font-size:13px;color:var(--ink3)}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.bg{background:var(--gbg);color:var(--green)}
+.bb{background:var(--bbg);color:var(--blue)}
+.ba{background:var(--abg);color:var(--amb)}
+</style>
+</head>
+<body>
+
+<!-- ═══ PIN ═══ -->
+<div class="pin" id="pin">
+  <div class="plogo">FINZEN</div>
+  <div class="psub">finanzas personales · ARS</div>
+  <div class="pdots">
+    <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
+    <div class="pd" id="pd2"></div><div class="pd" id="pd3"></div>
+  </div>
+  <div class="pgrid">
+    <button class="pk" onclick="pp('1')">1</button>
+    <button class="pk" onclick="pp('2')">2</button>
+    <button class="pk" onclick="pp('3')">3</button>
+    <button class="pk" onclick="pp('4')">4</button>
+    <button class="pk" onclick="pp('5')">5</button>
+    <button class="pk" onclick="pp('6')">6</button>
+    <button class="pk" onclick="pp('7')">7</button>
+    <button class="pk" onclick="pp('8')">8</button>
+    <button class="pk" onclick="pp('9')">9</button>
+    <button class="pk" style="visibility:hidden"></button>
+    <button class="pk" onclick="pp('0')">0</button>
+    <button class="pk" style="font-size:16px;color:#888" onclick="pdel()">⌫</button>
+  </div>
+  <div class="perr" id="perr"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══ APP ═══ -->
+<div class="app" id="app" style="display:none">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tlogo">FINZEN</div>
+    <div class="upill" title="Cotización USD blue — editá manualmente">
+      <span>🇺🇸 USD $</span>
+      <input class="uinp" id="usd-inp" type="number" inputmode="numeric" placeholder="1200"
+        onchange="setUSD(this.value)" onblur="setUSD(this.value)" title="Ingresá la cotización del dólar blue">
+      <span>ARS</span>
+    </div>
+  </div>
+
+  <!-- ── INICIO ── -->
+  <div class="sc on" id="sc-inicio">
+
+    <div class="hero">
+      <div class="hlbl">SALDO DEL MES</div>
+      <div class="hars" id="h-ars">$0</div>
+      <div class="husd" id="h-usd">≈ USD 0</div>
+      <div class="hrow">
+        <div class="hi"><div class="hil">INGRESOS</div><div class="hiv" style="color:#9FE1CB" id="h-ing">$0</div></div>
+        <div class="hi"><div class="hil">EGRESOS</div><div class="hiv" style="color:#F5A89A" id="h-egr">$0</div></div>
+        <div class="hi"><div class="hil">AHORRO</div><div class="hiv" style="color:#A5C8F5" id="h-aho">$0</div></div>
+      </div>
+    </div>
+
+    <!-- Alerta salario -->
+    <div id="alerta-sal"></div>
+
+    <!-- Meta de ahorro -->
+    <div class="card">
+      <div class="ct">Meta de ahorro</div>
+      <div class="prog">
+        <div class="prh">
+          <span class="prn" id="mn">Sin meta</span>
+          <span class="prp" id="mpct">0%</span>
+        </div>
+        <div class="prbar"><div class="prfill" id="mfill" style="width:0%;background:var(--green)"></div></div>
+        <div class="prsub"><span id="mact">$0 ahorrado</span><span id="mobj">Meta: $0</span></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <div><div style="font-size:10px;color:var(--ink3);margin-bottom:3px">Destino</div><span class="badge bb" id="mdest">—</span></div>
+        <button onclick="openM('mod-meta')" style="background:none;border:1.5px solid var(--line);border-radius:10px;padding:6px 13px;font-size:12px;cursor:pointer;color:var(--ink2)">✏ Editar</button>
+      </div>
+    </div>
+
+    <div class="sec">Últimos movimientos</div>
+    <div class="card" style="padding:8px 13px"><div id="home-tx"></div></div>
+  </div>
+
+  <!-- ── MOVIMIENTOS ── -->
+  <div class="sc" id="sc-mov">
+    <div class="chips" id="chips"></div>
+    <div class="card" style="padding:8px 13px"><div id="mov-list"></div></div>
+  </div>
+
+  <!-- ── ESTADÍSTICAS ── -->
+  <div class="sc" id="sc-stats">
+    <div class="sgrid">
+      <div class="sc2"><div class="sl">INGRESOS</div><div class="sv" style="color:var(--green)" id="si">$0</div><div class="ss" id="si-u">≈ USD 0</div></div>
+      <div class="sc2"><div class="sl">EGRESOS</div><div class="sv" style="color:var(--red)" id="se">$0</div><div class="ss" id="se-u">≈ USD 0</div></div>
+      <div class="sc2"><div class="sl">AHORRO REAL</div><div class="sv" style="color:var(--blue)" id="sa">$0</div><div class="ss" id="sa-p">0% del ingreso</div></div>
+      <div class="sc2"><div class="sl">TASA AHORRO</div><div class="sv" id="stasa">0%</div><div class="ss" id="st-m">Meta: 0%</div></div>
+    </div>
+    <div class="card">
+      <div class="ct">Últimos 6 meses</div>
+      <div style="display:flex;align-items:flex-end;gap:5px;height:96px" id="bars"></div>
+      <div style="display:flex;gap:13px;margin-top:9px;font-size:10px;color:var(--ink3)">
+        <span><span style="display:inline-block;width:8px;height:8px;background:#1A7A4A;border-radius:2px;margin-right:3px"></span>Ingresos</span>
+        <span><span style="display:inline-block;width:8px;height:8px;background:#C0392B;border-radius:2px;margin-right:3px"></span>Egresos</span>
+        <span><span style="display:inline-block;width:8px;height:8px;background:#1A5FA8;border-radius:2px;margin-right:3px"></span>Ahorro</span>
+      </div>
+    </div>
+    <div class="card"><div class="ct">Por categoría</div><div id="cat-st"></div></div>
+    <div class="card"><div class="ct">Meta vs ahorro real</div><div id="mvr"></div></div>
+  </div>
+
+  <!-- ── AJUSTES ── -->
+  <div class="sc" id="sc-cfg">
+
+    <!-- SALARIO META -->
+    <div class="card">
+      <div class="ct">💰 Salario mensual esperado</div>
+      <p style="font-size:13px;color:var(--ink3);margin-bottom:12px;line-height:1.5">Fijá tu salario mensual. Si los ingresos del mes están por debajo, aparecerá una alerta automática en el panel.</p>
+      <label class="fl" style="margin-top:0">Salario mensual $ ARS</label>
+      <div style="display:flex;gap:8px;margin-top:5px">
+        <input class="fi" id="sal-inp" type="number" inputmode="numeric" placeholder="Ej: 500000" style="flex:1">
+        <button onclick="saveSalario()" style="padding:12px 16px;background:var(--ink);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0">Guardar</button>
+      </div>
+      <div id="sal-st" style="font-size:12px;margin-top:8px;min-height:16px"></div>
+    </div>
+
+    <!-- RECORDATORIO -->
+    <div class="card">
+      <div class="ct">🔔 Recordatorio diario 21:00</div>
+      <p style="font-size:13px;color:var(--ink3);margin-bottom:12px;line-height:1.5">Recibí una notificación con sonido cada día a las 21:00 para recordarte cargar tus movimientos.</p>
+      <button class="btn btnp" id="notif-btn" onclick="pedirNotif()">🔔 Activar recordatorio</button>
+      <div id="notif-st" style="font-size:12px;color:var(--ink3);margin-top:8px;min-height:16px"></div>
+    </div>
+
+    <!-- COTIZACIÓN -->
+    <div class="card">
+      <div class="ct">💵 Cotización USD blue</div>
+      <p style="font-size:13px;color:var(--ink3);margin-bottom:12px;line-height:1.5">Ingresá el valor del dólar blue manualmente. Se actualiza en tiempo real en toda la app.</p>
+      <label class="fl" style="margin-top:0">Valor del USD blue $ ARS</label>
+      <div style="display:flex;gap:8px;margin-top:5px">
+        <input class="fi" id="usd-cfg" type="number" inputmode="numeric" placeholder="Ej: 1350" style="flex:1">
+        <button onclick="setUSDCfg()" style="padding:12px 16px;background:var(--ink);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0">Aplicar</button>
+      </div>
+      <div id="usd-st" style="font-size:12px;color:var(--ink3);margin-top:8px;min-height:16px"></div>
+    </div>
+
+    <!-- DATOS -->
+    <div class="card">
+      <div class="ct">Datos</div>
+      <button class="btn btnd" onclick="clearDemo()">🗑 Borrar datos demo</button>
+      <button class="btn btnd" onclick="clearAll()">⚠ Borrar todo</button>
+      <button class="btn btnp" onclick="saveHTML()" style="margin-top:12px">💾 Descargar HTML con mis datos</button>
+    </div>
+
+    <!-- INFORME -->
+    <div class="card">
+      <div class="ct">Informe</div>
+      <button class="btn btnp" id="jpg-btn" onclick="exportJPG()">📸 Descargar captura JPG</button>
+      <div id="jpg-st" style="font-size:12px;color:var(--ink3);margin-top:6px;min-height:14px"></div>
+    </div>
+
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab" onclick="openM('mod-tx')">＋</button>
+
+  <!-- NAV -->
+  <nav class="bnav">
+    <button class="bn on" id="bn-inicio" onclick="goTo('inicio')"><span class="bni">🏠</span>Inicio</button>
+    <button class="bn" id="bn-mov" onclick="goTo('mov')"><span class="bni">💳</span>Movimientos</button>
+    <button class="bn" id="bn-stats" onclick="goTo('stats')"><span class="bni">📊</span>Estadísticas</button>
+    <button class="bn" id="bn-cfg" onclick="goTo('cfg')"><span class="bni">⚙</span>Ajustes</button>
+  </nav>
+</div>
+
+<!-- ═══ MODAL TX ═══ -->
+<div class="mbg" id="mod-tx">
+  <div class="mpanel">
+    <div class="mtitle">Nuevo movimiento</div>
+    <div class="tt">
+      <button class="ttb on ing" id="tb-ing" onclick="setTipo('ingreso')">↑ Ingreso</button>
+      <button class="ttb" id="tb-egr" onclick="setTipo('egreso')">↓ Egreso</button>
+      <button class="ttb" id="tb-aho" onclick="setTipo('ahorro')">🏦 Ahorro</button>
+    </div>
+    <label class="fl" style="margin-top:0">Monto $</label>
+    <input class="fi fibig" id="tx-m" type="number" inputmode="decimal" placeholder="0" style="margin-top:4px">
+    <label class="fl">Descripción</label>
+    <input class="fi" id="tx-d" placeholder="Ej: Sueldo, supermercado..." style="margin-top:4px">
+    <div class="frow">
+      <div>
+        <label class="fl">Categoría</label>
+        <select class="fi" id="tx-c" style="margin-top:4px">
+          <option value="salario">💼 Salario</option>
+          <option value="freelance">🖥 Freelance</option>
+          <option value="otros-ing">💰 Otro ingreso</option>
+          <option value="alquiler">🏠 Alquiler</option>
+          <option value="comida">🛒 Comida</option>
+          <option value="transporte">🚌 Transporte</option>
+          <option value="servicios">💡 Servicios</option>
+          <option value="salud">💊 Salud</option>
+          <option value="ocio">🎮 Ocio</option>
+          <option value="ropa">👗 Ropa</option>
+          <option value="educacion">📚 Educación</option>
+          <option value="deuda">💳 Deuda</option>
+          <option value="ahorro">🏦 Ahorro</option>
+          <option value="otros">📦 Otros</option>
+        </select>
+      </div>
+      <div>
+        <label class="fl">Fecha</label>
+        <input class="fi" id="tx-f" type="date" style="margin-top:4px">
+      </div>
+    </div>
+    <button class="btn btnp" onclick="saveTx()" style="margin-top:16px">Guardar movimiento</button>
+    <button class="btn btng" onclick="closeM('mod-tx')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL META ═══ -->
+<div class="mbg" id="mod-meta">
+  <div class="mpanel">
+    <div class="mtitle">Meta de ahorro</div>
+    <label class="fl" style="margin-top:0">Nombre de la meta</label>
+    <input class="fi" id="me-nm" placeholder="Ej: Viaje, fondo de emergencia..." style="margin-top:4px">
+    <label class="fl">Objetivo $ ARS</label>
+    <input class="fi fibig" id="me-obj" type="number" inputmode="decimal" placeholder="0" style="margin-top:4px">
+    <label class="fl">% a ahorrar del ingreso mensual</label>
+    <input class="fi" id="me-pct" type="number" placeholder="20" min="1" max="100" inputmode="decimal" style="margin-top:4px">
+    <label class="fl">Destino del ahorro</label>
+    <div class="dg" id="dg">
+      <div class="do on" data-v="caja" onclick="selD(this)"><div class="di">🏦</div><div class="dl">Caja ahorro</div></div>
+      <div class="do" data-v="inversion" onclick="selD(this)"><div class="di">📈</div><div class="dl">Inversión</div></div>
+      <div class="do" data-v="plazo" onclick="selD(this)"><div class="di">🔒</div><div class="dl">Plazo fijo</div></div>
+      <div class="do" data-v="cripto" onclick="selD(this)"><div class="di">₿</div><div class="dl">Cripto</div></div>
+      <div class="do" data-v="dolares" onclick="selD(this)"><div class="di">💵</div><div class="dl">Dólares</div></div>
+      <div class="do" data-v="otro" onclick="selD(this)"><div class="di">🎯</div><div class="dl">Otro</div></div>
+    </div>
+    <button class="btn btnp" onclick="saveMeta()">Guardar meta</button>
+    <button class="btn btng" onclick="closeM('mod-meta')">Cancelar</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script type="module">
+// ═══════════════════════════════════════════
+//  FIREBASE
+// ═══════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+const FB_CFG = {
+  apiKey: "AIzaSyB8kwvVVPGnk3mMAphvabHl5LXD8tD1qqA",
+  authDomain: "ahorro-gastos.firebaseapp.com",
+  projectId: "ahorro-gastos",
+  storageBucket: "ahorro-gastos.firebasestorage.app",
+  messagingSenderId: "183607798670",
+  appId: "1:183607798670:web:f72c1cbe4a72f408c712df"
+};
+const fbApp = initializeApp(FB_CFG);
+const db = getFirestore(fbApp);
+const DOC_ID = 'finzen_data';
+
+// Exponer funciones de Firebase globalmente
+window._fbSave = async (data) => {
+  await setDoc(doc(db,'finzen',DOC_ID), data);
+};
+window._fbLoad = async () => {
+  const snap = await getDoc(doc(db,'finzen',DOC_ID));
+  return snap.exists() ? snap.data() : null;
+};
+window._fbListen = (cb) => {
+  onSnapshot(doc(db,'finzen',DOC_ID), snap => {
+    if(snap.exists()) cb(snap.data());
+  });
+};
+
+// Arrancar app después de inicializar Firebase
+window.addEventListener('load', () => {
+  if(window._appReady) window._appReady();
+});
+</script>
+<script>
+// ═══════════════════════════════════════════
+//  PIN
+// ═══════════════════════════════════════════
+const PINC='9071';
+let pb='',pl=false;
+function pp(d){
+  if(pl||pb.length>=4)return;
+  pb+=d;ud();
+  if(pb.length===4)setTimeout(chkPin,120);
+}
+function pdel(){pb=pb.slice(0,-1);ud();}
+function ud(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('on',i<pb.length);}
+function chkPin(){
+  if(pb===PINC){
+    const w=document.getElementById('pin');
+    w.style.transition='opacity .4s';w.style.opacity='0';
+    setTimeout(()=>{w.classList.add('off');document.getElementById('app').style.display='block';boot();},400);
+  } else {
+    pl=true;
+    for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);d.classList.remove('on');d.classList.add('err');}
+    document.getElementById('perr').textContent='PIN incorrecto';
+    setTimeout(()=>{pb='';pl=false;for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);d.classList.remove('err');}document.getElementById('perr').textContent='';ud();},900);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════
+const SK='fz_v4';
+let USD=1200;
+let S={
+  tx:[
+    {id:1,tipo:'ingreso',desc:'Sueldo abril',cat:'salario',monto:350000,fecha:'2026-04-01'},
+    {id:2,tipo:'egreso',desc:'Alquiler',cat:'alquiler',monto:90000,fecha:'2026-04-01'},
+    {id:3,tipo:'egreso',desc:'Supermercado',cat:'comida',monto:35000,fecha:'2026-04-03'},
+    {id:4,tipo:'egreso',desc:'SUBE',cat:'transporte',monto:8000,fecha:'2026-04-04'},
+    {id:5,tipo:'egreso',desc:'Netflix',cat:'ocio',monto:4500,fecha:'2026-04-05'},
+    {id:6,tipo:'egreso',desc:'Luz y gas',cat:'servicios',monto:22000,fecha:'2026-04-05'},
+    {id:7,tipo:'ingreso',desc:'Freelance',cat:'freelance',monto:85000,fecha:'2026-04-10'},
+    {id:8,tipo:'egreso',desc:'Farmacia',cat:'salud',monto:9500,fecha:'2026-04-11'},
+    {id:9,tipo:'ahorro',desc:'Caja de ahorro',cat:'ahorro',monto:50000,fecha:'2026-04-15'},
+    {id:10,tipo:'egreso',desc:'Ropa',cat:'ropa',monto:28000,fecha:'2026-04-18'},
+  ],
+  meta:{nombre:'Fondo de emergencia',objetivo:500000,pctDeseado:20,destino:'caja'},
+  salarioMeta:500000,
+};
+const DEMO=[1,2,3,4,5,6,7,8,9,10];
+const ICONS={salario:'💼',freelance:'🖥','otros-ing':'💰',alquiler:'🏠',comida:'🛒',transporte:'🚌',servicios:'💡',salud:'💊',ocio:'🎮',ropa:'👗',educacion:'📚',deuda:'💳',ahorro:'🏦',otros:'📦'};
+const CLRS={salario:'#1A7A4A',freelance:'#1A5FA8','otros-ing':'#1A7A4A',alquiler:'#6B6A62',comida:'#C0392B',transporte:'#A0620A',servicios:'#A0620A',salud:'#1A5FA8',ocio:'#6B3AB7',ropa:'#B03070',educacion:'#1A5FA8',deuda:'#C0392B',ahorro:'#1A7A4A',otros:'#6B6A62'};
+const DEST={caja:'🏦 Caja de ahorro',inversion:'📈 Inversión',plazo:'🔒 Plazo fijo',cripto:'₿ Cripto',dolares:'💵 Dólares',otro:'🎯 Otro'};
+
+// ═══════════════════════════════════════════
+//  FIREBASE — sincronización entre dispositivos
+// ═══════════════════════════════════════════
+function listenFirebase(){
+  if(!window._fbListen) return;
+  window._fbListen(data => {
+    S = {...S, ...data};
+    renderInicio();
+    if(document.getElementById('sc-mov').classList.contains('on')) renderMov();
+    if(document.getElementById('sc-stats').classList.contains('on')) renderStats();
+  });
+}
+
+async function loadS(){
+  try{
+    if(window._fbLoad){
+      const data = await window._fbLoad();
+      if(data){ S = {...S, ...data}; return; }
+    }
+  }catch(e){}
+  try{const d=localStorage.getItem(SK);if(d){S={...S,...JSON.parse(d)};}}catch(e){}
+}
+
+async function saveS(){
+  try{
+    if(window._fbSave) await window._fbSave(S);
+    else localStorage.setItem(SK, JSON.stringify(S));
+  }catch(e){
+    try{localStorage.setItem(SK, JSON.stringify(S));}catch(e2){}
+  }
+  playSave();
+  showToast('✓ Guardado y sincronizado');
+}
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function fmt(n){const a=Math.abs(Math.round(n));if(a>=1000000)return '$'+(a/1000000).toFixed(1)+'M';if(a>=1000)return '$'+(a/1000).toFixed(0)+'K';return '$'+a.toLocaleString('es-AR');}
+function fU(n){return 'USD '+(n/USD).toLocaleString('es-AR',{maximumFractionDigits:0});}
+let _tt;
+function showToast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('on'),2200);}
+const ing=()=>S.tx.filter(t=>t.tipo==='ingreso').reduce((a,b)=>a+b.monto,0);
+const egr=()=>S.tx.filter(t=>t.tipo==='egreso').reduce((a,b)=>a+b.monto,0);
+const aho=()=>S.tx.filter(t=>t.tipo==='ahorro').reduce((a,b)=>a+b.monto,0);
+
+// ═══════════════════════════════════════════
+//  SONIDO
+// ═══════════════════════════════════════════
+function playSave(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sine';o.frequency.value=880;
+    g.gain.setValueAtTime(0.18,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.16);
+    o.start(ctx.currentTime);o.stop(ctx.currentTime+0.16);
+  }catch(e){}
+}
+function playAlerta(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [0,0.28].forEach((t,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';o.frequency.value=i===0?600:400;
+      g.gain.setValueAtTime(0.35,ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.22);
+      o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.22);
+    });
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════
+//  USD MANUAL
+// ═══════════════════════════════════════════
+function setUSD(v){
+  const n=parseFloat(v);
+  if(!n||n<=0)return;
+  USD=n;
+  try{localStorage.setItem('fz_usd',n);}catch(e){}
+  document.getElementById('usd-inp').value=Math.round(n);
+  if(document.getElementById('usd-cfg'))document.getElementById('usd-cfg').value=Math.round(n);
+  renderInicio();
+  if(document.getElementById('sc-stats').classList.contains('on'))renderStats();
+}
+function setUSDCfg(){
+  const v=parseFloat(document.getElementById('usd-cfg').value);
+  if(!v||v<=0){document.getElementById('usd-st').innerHTML='<span style="color:var(--red)">⚠ Ingresá un valor válido</span>';return;}
+  setUSD(v);
+  document.getElementById('usd-st').innerHTML=`<span style="color:var(--green)">✓ USD blue actualizado: $${Math.round(v).toLocaleString('es-AR')} ARS</span>`;
+}
+function loadUSD(){
+  try{const c=localStorage.getItem('fz_usd');if(c&&+c>0)USD=+c;}catch(e){}
+  document.getElementById('usd-inp').value=Math.round(USD);
+  if(document.getElementById('usd-cfg'))document.getElementById('usd-cfg').value=Math.round(USD);
+}
+
+// ═══════════════════════════════════════════
+//  SALARIO META
+// ═══════════════════════════════════════════
+function saveSalario(){
+  const v=parseFloat(document.getElementById('sal-inp').value);
+  if(!v||v<=0){document.getElementById('sal-st').innerHTML='<span style="color:var(--red)">⚠ Ingresá un monto válido</span>';return;}
+  S.salarioMeta=v;
+  saveS();
+  document.getElementById('sal-st').innerHTML=`<span style="color:var(--green)">✓ Guardado — Meta mensual: ${fmt(v)} | Anual: ${fmt(v*12)}</span>`;
+  renderInicio();
+}
+function loadSalario(){
+  if(S.salarioMeta>0)document.getElementById('sal-inp').value=Math.round(S.salarioMeta);
+}
+
+// ═══════════════════════════════════════════
+//  RECORDATORIO 21:00
+// ═══════════════════════════════════════════
+function pedirNotif(){
+  const st=document.getElementById('notif-st');
+  const btn=document.getElementById('notif-btn');
+  if(!('Notification' in window)){
+    st.innerHTML='<span style="color:var(--red)">⚠ Tu navegador no soporta notificaciones. Probá en Chrome o Edge.</span>';
+    return;
+  }
+  if(Notification.permission==='granted'){
+    activarRecordatorio();
+    st.innerHTML='<span style="color:var(--green)">✓ Recordatorio activo — todos los días a las 21:00 hs</span>';
+    btn.textContent='✓ Recordatorio activado';
+    btn.style.opacity='.6';
+    return;
+  }
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){
+      activarRecordatorio();
+      st.innerHTML='<span style="color:var(--green)">✓ Recordatorio activo — todos los días a las 21:00 hs</span>';
+      btn.textContent='✓ Recordatorio activado';
+      btn.style.opacity='.6';
+      new Notification('FinZen 💰',{body:'Recordatorio activado correctamente. Te avisaremos cada día a las 21:00.'});
+    } else {
+      st.innerHTML='<span style="color:var(--amb)">⚠ Permiso denegado. Habilitá notificaciones en la config. del navegador.</span>';
+    }
+  });
+}
+function activarRecordatorio(){
+  try{localStorage.setItem('fz_notif','1');}catch(e){}
+  programarRecordatorio();
+}
+let _remT;
+function programarRecordatorio(){
+  const now=new Date();
+  const nxt=new Date();
+  nxt.setHours(21,0,0,0);
+  if(now>=nxt)nxt.setDate(nxt.getDate()+1);
+  const ms=nxt-now;
+  clearTimeout(_remT);
+  _remT=setTimeout(()=>{
+    if(Notification.permission==='granted'){
+      playAlerta();
+      new Notification('FinZen — ¡Hora de cargar! 💰',{
+        body:'Son las 21:00. Registrá los movimientos de hoy para tener tus finanzas al día.',
+        requireInteraction:true
+      });
+    }
+    programarRecordatorio();
+  },ms);
+}
+function checkNotif(){
+  try{
+    if(localStorage.getItem('fz_notif')==='1'&&Notification.permission==='granted'){
+      document.getElementById('notif-st').innerHTML='<span style="color:var(--green)">✓ Recordatorio activo — todos los días a las 21:00 hs</span>';
+      document.getElementById('notif-btn').textContent='✓ Recordatorio activado';
+      document.getElementById('notif-btn').style.opacity='.6';
+      programarRecordatorio();
+    }
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════
+//  NAVEGACIÓN
+// ═══════════════════════════════════════════
+function goTo(id){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.bn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('sc-'+id).classList.add('on');
+  document.getElementById('bn-'+id).classList.add('on');
+  document.getElementById('fab').style.display=id==='cfg'?'none':'flex';
+  if(id==='inicio')renderInicio();
+  if(id==='mov'){buildChips();renderMov();}
+  if(id==='stats')renderStats();
+  if(id==='cfg'){loadSalario();loadUSD();}
+}
+
+// ═══════════════════════════════════════════
+//  INICIO
+// ═══════════════════════════════════════════
+function renderInicio(){
+  const i=ing(),e=egr(),a=aho(),s=i-e-a;
+  document.getElementById('h-ars').textContent=fmt(s);
+  document.getElementById('h-usd').textContent='≈ '+fU(Math.max(0,s));
+  document.getElementById('h-ing').textContent=fmt(i);
+  document.getElementById('h-egr').textContent=fmt(e);
+  document.getElementById('h-aho').textContent=fmt(a);
+
+  // ── ALERTA SALARIO ──
+  const al=document.getElementById('alerta-sal');
+  if(S.salarioMeta>0){
+    if(i<S.salarioMeta){
+      const falta=S.salarioMeta-i;
+      const pct=Math.round(i/S.salarioMeta*100);
+      al.innerHTML=`<div class="alerta alerta-red">
+        <span style="font-size:20px;flex-shrink:0">⚠️</span>
+        <div>
+          <div class="alt" style="color:var(--red)">Ingresos por debajo del salario esperado</div>
+          <div class="ald" style="color:#8B3030">Llevás ${fmt(i)} de ${fmt(S.salarioMeta)} (${pct}%). Faltan ${fmt(falta)} ARS para alcanzar tu meta mensual.</div>
+        </div>
+      </div>`;
+      playAlerta();
+    } else {
+      al.innerHTML=`<div class="alerta alerta-green">
+        <span style="font-size:20px;flex-shrink:0">✅</span>
+        <div>
+          <div class="alt" style="color:var(--green)">Ingresos en línea con tu meta</div>
+          <div class="ald" style="color:#1A6040">Alcanzaste ${fmt(i)} de ${fmt(S.salarioMeta)} esperado este mes.</div>
+        </div>
+      </div>`;
+    }
+  } else {
+    al.innerHTML=`<div class="alerta alerta-amber">
+      <span style="font-size:18px;flex-shrink:0">💡</span>
+      <div class="ald" style="color:var(--amb)">Configurá tu salario mensual en <strong>Ajustes</strong> para recibir alertas automáticas.</div>
+    </div>`;
+  }
+
+  // Meta
+  const m=S.meta,pct=m.objetivo>0?Math.min(100,Math.round(a/m.objetivo*100)):0;
+  document.getElementById('mn').textContent=m.nombre||'Sin meta';
+  document.getElementById('mpct').textContent=pct+'%';
+  document.getElementById('mfill').style.width=pct+'%';
+  document.getElementById('mfill').style.background=pct>=100?'var(--green)':pct>=60?'var(--blue)':'var(--amb)';
+  document.getElementById('mact').textContent=fmt(a)+' ahorrado';
+  document.getElementById('mobj').textContent='Meta: '+fmt(m.objetivo);
+  document.getElementById('mdest').textContent=DEST[m.destino]||'—';
+
+  // Últimas TX
+  const last=[...S.tx].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,5);
+  document.getElementById('home-tx').innerHTML=last.length
+    ?last.map(t=>txHTML(t,false)).join('')
+    :'<div class="empty">📭 Sin movimientos. Tocá ＋ para agregar uno.</div>';
+}
+
+// ═══════════════════════════════════════════
+//  TX
+// ═══════════════════════════════════════════
+function txHTML(t,del){
+  const c=t.tipo==='ingreso'?'var(--green)':t.tipo==='ahorro'?'var(--blue)':'var(--red)';
+  const bg=t.tipo==='ingreso'?'var(--gbg)':t.tipo==='ahorro'?'var(--bbg)':'var(--rbg)';
+  return `<div class="txi">
+    <div class="txic" style="background:${bg}">${ICONS[t.cat]||'📦'}</div>
+    <div class="txbd">
+      <div class="txnm">${t.desc}</div>
+      <div class="txct">${t.cat} · ${t.fecha.slice(5).replace('-','/')}</div>
+    </div>
+    <div class="txam" style="color:${c}">${t.tipo==='egreso'?'−':'+'}${fmt(t.monto)}</div>
+    ${del?`<button class="txdel" onclick="delTx(${t.id})">🗑</button>`:''}
+  </div>`;
+}
+function delTx(id){S.tx=S.tx.filter(t=>t.id!==id);saveS();renderInicio();if(document.getElementById('sc-mov').classList.contains('on'))renderMov();}
+
+// ═══════════════════════════════════════════
+//  MOVIMIENTOS
+// ═══════════════════════════════════════════
+let chip='todos';
+function buildChips(){
+  const opts=[{v:'todos',l:'Todos'},{v:'ingreso',l:'↑ Ingresos'},{v:'egreso',l:'↓ Egresos'},{v:'ahorro',l:'🏦 Ahorro'}];
+  document.getElementById('chips').innerHTML=opts.map(o=>`<button class="chip${o.v===chip?' on':''}" onclick="setChip('${o.v}')">${o.l}</button>`).join('');
+}
+function setChip(v){chip=v;buildChips();renderMov();}
+function renderMov(){
+  const lista=[...S.tx].filter(t=>chip==='todos'||t.tipo===chip).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  document.getElementById('mov-list').innerHTML=lista.length?lista.map(t=>txHTML(t,true)).join(''):'<div class="empty">Sin movimientos</div>';
+}
+
+// ═══════════════════════════════════════════
+//  NUEVA TX
+// ═══════════════════════════════════════════
+let tipo='ingreso';
+function setTipo(t){
+  tipo=t;
+  document.querySelectorAll('.ttb').forEach(b=>b.classList.remove('on','ing','egr','aho'));
+  const map={ingreso:'ing',egreso:'egr',ahorro:'aho'};
+  document.getElementById('tb-'+map[t]).classList.add('on',map[t]);
+}
+function saveTx(){
+  const m=parseFloat(document.getElementById('tx-m').value);
+  const d=document.getElementById('tx-d').value.trim();
+  const c=document.getElementById('tx-c').value;
+  const f=document.getElementById('tx-f').value||new Date().toISOString().split('T')[0];
+  if(!m||!d){showToast('⚠ Completá monto y descripción');return;}
+  let t=tipo;if(c==='ahorro')t='ahorro';
+  S.tx.unshift({id:Date.now(),tipo:t,desc:d,cat:c,monto:m,fecha:f});
+  saveS();closeM('mod-tx');
+  document.getElementById('tx-m').value='';
+  document.getElementById('tx-d').value='';
+  renderInicio();
+  if(document.getElementById('sc-mov').classList.contains('on'))renderMov();
+}
+
+// ═══════════════════════════════════════════
+//  META
+// ═══════════════════════════════════════════
+let mDest='caja';
+function selD(el){mDest=el.dataset.v;document.querySelectorAll('.do').forEach(d=>d.classList.toggle('on',d.dataset.v===mDest));}
+function openMetaM(){
+  const m=S.meta;
+  document.getElementById('me-nm').value=m.nombre||'';
+  document.getElementById('me-obj').value=m.objetivo||'';
+  document.getElementById('me-pct').value=m.pctDeseado||20;
+  mDest=m.destino||'caja';
+  document.querySelectorAll('.do').forEach(d=>d.classList.toggle('on',d.dataset.v===mDest));
+}
+function saveMeta(){
+  S.meta={
+    nombre:document.getElementById('me-nm').value.trim()||'Mi meta',
+    objetivo:parseFloat(document.getElementById('me-obj').value)||0,
+    pctDeseado:parseFloat(document.getElementById('me-pct').value)||20,
+    destino:mDest
+  };
+  saveS();closeM('mod-meta');renderInicio();
+}
+
+// ═══════════════════════════════════════════
+//  ESTADÍSTICAS
+// ═══════════════════════════════════════════
+function renderStats(){
+  const i=ing(),e=egr(),a=aho(),tr=i>0?Math.round(a/i*100):0,tm=S.meta.pctDeseado||20;
+  document.getElementById('si').textContent=fmt(i);document.getElementById('si-u').textContent='≈ '+fU(i);
+  document.getElementById('se').textContent=fmt(e);document.getElementById('se-u').textContent='≈ '+fU(e);
+  document.getElementById('sa').textContent=fmt(a);document.getElementById('sa-p').textContent=tr+'% del ingreso';
+  document.getElementById('stasa').textContent=tr+'%';
+  document.getElementById('stasa').style.color=tr>=tm?'var(--green)':'var(--red)';
+  document.getElementById('st-m').textContent='Meta: '+tm+'%';
+
+  const mx=Math.max(i,e)*1.15||1;
+  const meses=['Nov','Dic','Ene','Feb','Mar','Abr'],f=[.6,.7,.78,.87,.94,1];
+  document.getElementById('bars').innerHTML=meses.map((m,idx)=>{
+    const ih=Math.max(3,Math.round(i*f[idx]/mx*88)),eh=Math.max(3,Math.round(e*f[idx]/mx*88)),ah=Math.max(3,Math.round(a*f[idx]/mx*88));
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center">
+      <div style="display:flex;gap:2px;align-items:flex-end;height:88px">
+        <div style="width:7px;height:${ih}px;background:#1A7A4A88;border-radius:3px 3px 0 0"></div>
+        <div style="width:7px;height:${eh}px;background:#C0392B88;border-radius:3px 3px 0 0"></div>
+        <div style="width:7px;height:${ah}px;background:#1A5FA888;border-radius:3px 3px 0 0"></div>
+      </div>
+      <div style="font-size:9px;color:var(--ink3);margin-top:4px">${m}</div>
+    </div>`;
+  }).join('');
+
+  const cats={};S.tx.filter(t=>t.tipo==='egreso').forEach(t=>{cats[t.cat]=(cats[t.cat]||0)+t.monto;});
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('cat-st').innerHTML=sorted.length?sorted.map(([cat,val])=>{
+    const pct=e?Math.round(val/e*100):0;
+    return `<div class="prog"><div class="prh"><span class="prn">${ICONS[cat]||'📦'} ${cat}</span><span class="prp" style="color:${CLRS[cat]||'#888'}">${fmt(val)}</span></div><div class="prbar"><div class="prfill" style="width:${pct}%;background:${CLRS[cat]||'#888'}"></div></div><div class="prsub"><span>${pct}%</span><span>${fU(val)}</span></div></div>`;
+  }).join(''):'<div class="empty">Sin egresos registrados</div>';
+
+  const diff=tr-tm,dc=diff>=0?'var(--green)':'var(--red)';
+  document.getElementById('mvr').innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div style="flex:1;text-align:center;padding:13px;background:var(--gbg);border-radius:var(--r2)">
+        <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:3px">DESEADO</div>
+        <div style="font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--green)">${tm}%</div>
+        <div style="font-size:11px;color:var(--green);opacity:.7">${fmt(i*tm/100)}</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:13px;background:${diff>=0?'var(--gbg)':'var(--rbg)'};border-radius:var(--r2)">
+        <div style="font-size:10px;color:${dc};font-weight:700;margin-bottom:3px">REAL</div>
+        <div style="font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:${dc}">${tr}%</div>
+        <div style="font-size:11px;color:${dc};opacity:.7">${fmt(a)}</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:13px;font-weight:600;color:${dc}">${diff>=0?'+'+diff+'% sobre la meta 🎉':diff+'% bajo la meta ⚠'}</div>
+    <div style="text-align:center;margin-top:7px;font-size:12px;color:var(--ink3)">Destino: <strong>${DEST[S.meta.destino]||'—'}</strong></div>`;
+}
+
+// ═══════════════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════════════
+function openM(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='mod-tx')document.getElementById('tx-f').value=new Date().toISOString().split('T')[0];
+  if(id==='mod-meta')openMetaM();
+}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('mbg'))e.target.classList.remove('open');});
+
+// ═══════════════════════════════════════════
+//  AJUSTES
+// ═══════════════════════════════════════════
+function clearDemo(){if(!confirm('¿Borrar los datos de demostración?'))return;S.tx=S.tx.filter(t=>!DEMO.includes(t.id));saveS();renderInicio();showToast('✓ Demo borrado');}
+function clearAll(){if(!confirm('⚠ ¿Borrar TODOS los datos?'))return;S.tx=[];saveS();renderInicio();showToast('✓ Todo borrado');}
+function saveHTML(){
+  try{
+    let src=document.documentElement.outerHTML;
+    const json=JSON.stringify(S);
+    const tag=`<script id="__d__" type="application/json">${json}<\/script>`;
+    const re=/<script id="__d__"[\s\S]*?<\/script>/;
+    src=re.test(src)?src.replace(re,tag):src.replace('</body>',tag+'\n</body>');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([src],{type:'text/html'}));
+    a.download='FinZen-'+new Date().toLocaleDateString('es-AR').replace(/\//g,'-')+'.html';
+    a.click();URL.revokeObjectURL(a.href);
+    showToast('💾 Archivo guardado');
+  }catch(e){showToast('Error: '+e.message);}
+}
+async function exportJPG(){
+  const btn=document.getElementById('jpg-btn'),st=document.getElementById('jpg-st');
+  btn.textContent='⏳ Capturando...';
+  try{
+    goTo('inicio');await new Promise(r=>setTimeout(r,300));
+    const cv=await html2canvas(document.getElementById('app'),{backgroundColor:'#F7F6F2',scale:2,useCORS:true,scrollY:-window.scrollY});
+    const a=document.createElement('a');
+    a.download='FinZen-'+new Date().toLocaleDateString('es-AR').replace(/\//g,'-')+'.jpg';
+    a.href=cv.toDataURL('image/jpeg',.95);a.click();
+    st.textContent='✓ JPG descargado';
+  }catch(e){st.textContent='Error: '+e.message;}
+  btn.textContent='📸 Descargar captura JPG';
+}
+
+// ═══════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════
+async function boot(){
+  await loadS();
+  loadUSD();
+  loadSalario();
+  checkNotif();
+  renderInicio();
+  listenFirebase();
+}
+
+// Exponer boot globalmente para que Firebase lo llame
+window._appReady = boot;
+</script>
+</body>
+</html>
